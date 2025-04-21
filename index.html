@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physiotherapy Receipt Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background-color: #f5f5f5;
+            --border-color: #ddd;
+            --success-color: #2ecc71;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .tagline {
+            font-style: italic;
+            color: #666;
+            margin: 5px 0 15px 0;
+            font-size: 1.1em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, 
+        .form-group select:focus, 
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .button {
+            padding: 12px 24px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #2980b9;
+        }
+
+        .receipt {
+            display: none;
+            margin-top: 40px;
+            padding: 30px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background-color: white;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .clinic-info {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+
+        .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .receipt-table th, 
+        .receipt-table td {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .receipt-table th {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+            color: #666;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .receipt, .receipt * {
+                visibility: visible;
+            }
+            .receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dr.RADHIKA PHYSIO CARE</h1>
+            <p class="tagline">Quality care for a better Quality of life</p>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="patientName">Patient Name *</label>
+                <input type="text" id="patientName" required placeholder="Enter patient name">
+            </div>
+
+            <div class="form-group">
+                <label for="age">Age *</label>
+                <input type="number" id="age" required placeholder="Enter age">
+            </div>
+
+            <div class="form-group">
+                <label for="mobileNumber">Mobile Number *</label>
+                <input type="tel" id="mobileNumber" required placeholder="Enter mobile number">
+            </div>
+
+            <div class="form-group">
+                <label for="billNumber">Bill Number *</label>
+                <input type="text" id="billNumber" required placeholder="Enter bill number">
+            </div>
+
+            <div class="form-group">
+                <label for="billDate">Bill Date *</label>
+                <input type="date" id="billDate" required>
+            </div>
+
+            <div class="form-group">
+                <label for="doctorName">Doctor Name *</label>
+                <input type="text" id="doctorName" required placeholder="Enter doctor name">
+            </div>
+
+            <div class="form-group">
+                <label for="billStatus">Bill Status *</label>
+                <select id="billStatus" required>
+                    <option value="">Select status</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Partially Paid">Partially Paid</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="sessions">Number of Sessions *</label>
+                <input type="number" id="sessions" required onchange="calculateTotal()" min="1" placeholder="Enter number of sessions">
+            </div>
+
+            <div class="form-group">
+                <label for="price">Price per Session (INR) *</label>
+                <input type="number" id="price" required onchange="calculateTotal()" min="0" placeholder="Enter price in INR">
+            </div>
+
+            <div class="form-group">
+                <label for="totalAmount">Total Amount (INR)</label>
+                <input type="number" id="totalAmount" readonly>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Issue Description *</label>
+            <textarea id="description" rows="4" required placeholder="Enter issue description"></textarea>
+        </div>
+
+        <div class="button-container">
+            <button class="button" onclick="generateReceipt()">Generate Receipt</button>
+        </div>
+
+        <div id="receipt" class="receipt">
+            <!-- Receipt content will be updated via JavaScript -->
+        </div>
+    </div>
+    <script>
+        window.jsPDF = window.jspdf.jsPDF;
+
+        // Initialize receipt number
+        document.getElementById('billNumber').value = generateBillNumber();
+
+        function generateBillNumber() {
+            const prefix = 'BILL';
+            const timestamp = new Date().getTime();
+            return `${prefix}${timestamp}`;
+        }
+
+        function calculateTotal() {
+            const sessions = document.getElementById('sessions').value;
+            const price = document.getElementById('price').value;
+            const total = sessions * price;
+            document.getElementById('totalAmount').value = total;
+        }
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+
+        function formatNumber(number) {
+            return new Intl.NumberFormat('en-IN').format(number);
+        }
+
+        function generateReceipt() {
+            // Validate required fields
+            const requiredFields = ['patientName', 'age', 'mobileNumber', 'billNumber', 
+                                  'billDate', 'doctorName', 'billStatus', 'sessions', 
+                                  'price', 'description'];
+            
+            for (let field of requiredFields) {
+                if (!document.getElementById(field).value) {
+                    alert(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+                    return;
+                }
+            }
+
+            const receiptHTML = `
+                <div class="receipt-header">
+                    <h2>RECEIPT</h2>
+                    <div class="clinic-info">
+                        <h3>Dr.RADHIKA PHYSIO CARE</h3>
+                        <p class="tagline"><em>Quality care for a better Quality of life</em></p>
+                        <p>H no:3-4-16/17/A/3,Road no 7,NIN Colony,Boduppal,Medipally,Medchal-Malkajigiri,TS-500082</p>
+                        <p>Phone :7075893482,8897270970</p>
+                    </div>
+                </div>
+
+                <table class="receipt-table">
+                    <tr>
+                        <th width="25%">Bill Number:</th>
+                        <td width="25%">${document.getElementById('billNumber').value}</td>
+                        <th width="25%">Bill Date:</th>
+                        <td width="25%">${formatDate(document.getElementById('billDate').value)}</td>
+                    </tr>
+                    <tr>
+                        <th>Patient Name:</th>
+                        <td>${document.getElementById('patientName').value}</td>
+                        <th>Age:</th>
+                        <td>${document.getElementById('age').value}</td>
+                    </tr>
+                    <tr>
+                        <th>Mobile Number:</th>
+                        <td>${document.getElementById('mobileNumber').value}</td>
+                        <th>Doctor Name:</th>
+                        <td>${document.getElementById('doctorName').value}</td>
+                    </tr>
+                    <tr>
+                        <th>Bill Status:</th>
+                        <td>${document.getElementById('billStatus').value}</td>
+                        <th>Number of Sessions:</th>
+                        <td>${document.getElementById('sessions').value}</td>
+                    </tr>
+                    <tr>
+                        <th>Issue Description:</th>
+                        <td colspan="3">${document.getElementById('description').value}</td>
+                    </tr>
+                </table>
+
+                <table class="receipt-table">
+                    <tr>
+                        <th width="40%">Description</th>
+                        <th width="20%">Sessions</th>
+                        <th width="20%">Price per Session</th>
+                        <th width="20%">Amount</th>
+                    </tr>
+                    <tr>
+                        <td>Physiotherapy Services</td>
+                        <td>${document.getElementById('sessions').value}</td>
+                        <td>${formatNumber(document.getElementById('price').value)}</td>
+                        <td>${formatNumber(document.getElementById('totalAmount').value)}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3" style="text-align: right;"><strong>Total Amount:</strong></td>
+                        <td>${formatNumber(document.getElementById('totalAmount').value)}</td>
+                    </tr>
+                </table>
+
+                <div class="receipt-footer">
+                    <p>Thank you for choosing Dr.RADHIKA PHYSIO CARE</p>
+                    <button class="button" onclick="generatePDF()">Download PDF</button>
+                </div>
+            `;
+
+            document.getElementById('receipt').innerHTML = receiptHTML;
+            document.getElementById('receipt').style.display = 'block';
+        }
+
+        function generatePDF() {
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            // Add clinic header with background
+            doc.setFillColor(44, 62, 80);
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            // Add clinic name and tagline in white
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.text('Dr.RADHIKA PHYSIO CARE', 105, 20, { align: 'center' });
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'italic');
+            doc.text('Quality care for a better Quality of life', 105, 30, { align: 'center' });
+
+            // Reset text color and font
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'normal');
+            
+            // Add clinic contact details
+            doc.setFontSize(10);
+            doc.text('H no:3-4-16/17/A/3,Road no 7,NIN Colony,Boduppal,Medipally,Medchal-Malkajigiri,TS-500082', 105, 50, { align: 'center' });
+            doc.text('Cell:7075893482,8897270970', 105, 55, { align: 'center' });
+
+            // Add receipt title
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('RECEIPT', 105, 70, { align: 'center' });
+
+            // Patient Information Section
+            let y = 85;
+            
+            // Draw section box
+            doc.setDrawColor(44, 62, 80);
+            doc.setLineWidth(0.5);
+            doc.rect(15, y-10, 180, 45);
+            
+            // Section header
+            doc.setFillColor(240, 240, 240);
+            doc.rect(15, y-10, 180, 8, 'F');
+            doc.setFontSize(12);
+            doc.text('Patient Information', 20, y-4);
+
+            // Patient details
+            doc.setFont(undefined, 'normal');
+            doc.text(`Patient Name: ${document.getElementById('patientName').value}`, 20, y+5);
+            doc.text(`Age: ${document.getElementById('age').value}`, 120, y+5);
+            doc.text(`Mobile: ${document.getElementById('mobileNumber').value}`, 20, y+15);
+            doc.text(`Doctor: ${document.getElementById('doctorName').value}`, 120, y+15);
+            doc.text(`Bill Status: ${document.getElementById('billStatus').value}`, 20, y+25);
+
+            // Bill Information Section
+            y += 50;
+            doc.rect(15, y-10, 180, 45);
+            doc.setFillColor(240, 240, 240);
+            doc.rect(15, y-10, 180, 8, 'F');
+            doc.setFont(undefined, 'bold');
+            doc.text('Bill Details', 20, y-4);
+
+            // Bill details
+            doc.setFont(undefined, 'normal');
+            doc.text(`Bill Number: ${document.getElementById('billNumber').value}`, 20, y+5);
+            doc.text(`Bill Date: ${formatDate(document.getElementById('billDate').value)}`, 120, y+5);
+            
+            // Issue description with text wrapping
+            const description = doc.splitTextToSize(`Issue Description: ${document.getElementById('description').value}`, 170);
+            description.forEach((line, index) => {
+                doc.text(line, 20, y+15 + (index * 7));
+            });
+
+            // Service Details Section
+            y += 50;
+            doc.rect(15, y-10, 180, 45);
+            doc.setFillColor(240, 240, 240);
+            doc.rect(15, y-10, 180, 8, 'F');
+            doc.setFont(undefined, 'bold');
+            doc.text('Service Details', 20, y-4);
+
+            // Service details table
+            doc.setFont(undefined, 'normal');
+            const startY = y + 5;
+            
+            // Table headers
+            doc.line(15, startY, 195, startY); // Top line
+            doc.line(15, startY + 10, 195, startY + 10); // Header separator
+            
+            // Vertical lines
+            doc.line(15, startY, 15, startY + 30); // Left border
+            doc.line(85, startY, 85, startY + 30); // After Description
+            doc.line(120, startY, 120, startY + 30); // After Sessions
+            doc.line(155, startY, 155, startY + 30); // After Price
+            doc.line(195, startY, 195, startY + 30); // Right border
+
+            // Headers
+            doc.text('Description', 20, startY + 7);
+            doc.text('Sessions', 90, startY + 7);
+            doc.text('Price/Session', 125, startY + 7);
+            doc.text('Amount', 160, startY + 7);
+
+            // Data
+            doc.text('Physiotherapy', 20, startY + 20);
+            doc.text(document.getElementById('sessions').value, 90, startY + 20);
+            doc.text(formatNumber(document.getElementById('price').value), 125, startY + 20);
+            doc.text(formatNumber(document.getElementById('totalAmount').value), 160, startY + 20);
+
+            // Bottom line
+            doc.line(15, startY + 30, 195, startY + 30);
+
+            // Total amount
+            doc.setFont(undefined, 'bold');
+            doc.text('Total Amount:', 125, startY + 40);
+            doc.text(formatNumber(document.getElementById('totalAmount').value), 160, startY + 40);
+
+            // Footer
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            doc.text('Thank you for choosing Dr.RADHIKA PHYSIO CARE', 105, 270, { align: 'center' });
+            doc.text('This is a computer generated receipt', 105, 275, { align: 'center' });
+
+            // Save the PDF
+            const billNumber = document.getElementById('billNumber').value;
+            doc.save(`receipt-${billNumber}.pdf`);
+        }
+    </script>
+</body>
+</html>
