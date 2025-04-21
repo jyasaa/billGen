@@ -74,6 +74,11 @@
             transition: border-color 0.3s ease;
         }
 
+        .form-group input:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+
         .form-group input:focus, 
         .form-group select:focus, 
         .form-group textarea:focus {
@@ -206,18 +211,18 @@
             </div>
 
             <div class="form-group">
-                <label for="doctorName">Doctor Name *</label>
-                <input type="text" id="doctorName" required placeholder="Enter doctor name">
+                <label for="doctorName">Doctor Name</label>
+                <input type="text" id="doctorName" value="Dr. Radhika (BPT,MPT)" disabled>
             </div>
 
             <div class="form-group">
-                <label for="billStatus">Bill Status *</label>
-                <select id="billStatus" required>
-                    <option value="">Select status</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Partially Paid">Partially Paid</option>
-                </select>
+                <label for="regNo">Registration No.</label>
+                <input type="text" id="regNo" value="05235" disabled>
+            </div>
+
+            <div class="form-group">
+                <label for="billStatus">Bill Status</label>
+                <input type="text" id="billStatus" value="Paid" disabled>
             </div>
 
             <div class="form-group">
@@ -280,8 +285,7 @@
         function generateReceipt() {
             // Validate required fields
             const requiredFields = ['patientName', 'age', 'mobileNumber', 'billNumber', 
-                                  'billDate', 'doctorName', 'billStatus', 'sessions', 
-                                  'price', 'description'];
+                                  'billDate', 'sessions', 'price', 'description'];
             
             for (let field of requiredFields) {
                 if (!document.getElementById(field).value) {
@@ -297,7 +301,7 @@
                         <h3>Dr.RADHIKA PHYSIO CARE</h3>
                         <p class="tagline"><em>Quality care for a better Quality of life</em></p>
                         <p>H no:3-4-16/17/A/3,Road no 7,NIN Colony,Boduppal,Medipally,Medchal-Malkajigiri,TS-500082</p>
-                        <p>Phone :7075893482,8897270970</p>
+                        <p>Cell: 7075893482,8897270970</p>
                     </div>
                 </div>
 
@@ -321,10 +325,10 @@
                         <td>${document.getElementById('doctorName').value}</td>
                     </tr>
                     <tr>
+                        <th>Registration No:</th>
+                        <td>${document.getElementById('regNo').value}</td>
                         <th>Bill Status:</th>
                         <td>${document.getElementById('billStatus').value}</td>
-                        <th>Number of Sessions:</th>
-                        <td>${document.getElementById('sessions').value}</td>
                     </tr>
                     <tr>
                         <th>Issue Description:</th>
@@ -368,118 +372,122 @@
                 format: 'a4'
             });
 
-            // Add clinic header with background
-            doc.setFillColor(44, 62, 80);
-            doc.rect(0, 0, 210, 40, 'F');
-            
-            // Add clinic name and tagline in white
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(24);
+            // Header
+            doc.setFontSize(22);
             doc.text('Dr.RADHIKA PHYSIO CARE', 105, 20, { align: 'center' });
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'italic');
-            doc.text('Quality care for a better Quality of life', 105, 30, { align: 'center' });
-
-            // Reset text color and font
-            doc.setTextColor(0, 0, 0);
-            doc.setFont(undefined, 'normal');
             
-            // Add clinic contact details
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'italic');
+            doc.text('Quality care for a better Quality of life', 105, 28, { align: 'center' });
+            
+            doc.setFont(undefined, 'normal');
             doc.setFontSize(10);
-            doc.text('H no:3-4-16/17/A/3,Road no 7,NIN Colony,Boduppal,Medipally,Medchal-Malkajigiri,TS-500082', 105, 50, { align: 'center' });
-            doc.text('Cell:7075893482,8897270970', 105, 55, { align: 'center' });
+            doc.text('H no:3-4-16/17/A/3,Road no 7,NIN Colony,Boduppal,Medipally,Medchal-Malkajigiri,TS-500082', 105, 35, { align: 'center' });
+            doc.text('Cell: 7075893482,8897270970', 105, 40, { align: 'center' });
 
-            // Add receipt title
+            // Receipt Title with underline
             doc.setFontSize(16);
             doc.setFont(undefined, 'bold');
-            doc.text('RECEIPT', 105, 70, { align: 'center' });
+            doc.text('RECEIPT', 105, 50, { align: 'center' });
+            doc.line(85, 52, 125, 52);
+
+            // Bill Details Section
+            let y = 65;
+            doc.setFontSize(10);
+            doc.setDrawColor(44, 62, 80);
+            doc.rect(15, y-5, 180, 15);
+            
+            doc.setFont(undefined, 'bold');
+            doc.text(`Bill No: ${document.getElementById('billNumber').value}`, 20, y+3);
+            doc.text(`Date: ${formatDate(document.getElementById('billDate').value)}`, 120, y+3);
 
             // Patient Information Section
-            let y = 85;
+            y += 20;
+            doc.rect(15, y, 180, 50);
             
-            // Draw section box
-            doc.setDrawColor(44, 62, 80);
-            doc.setLineWidth(0.5);
-            doc.rect(15, y-10, 180, 45);
-            
-            // Section header
+            // Section Header
             doc.setFillColor(240, 240, 240);
-            doc.rect(15, y-10, 180, 8, 'F');
-            doc.setFontSize(12);
-            doc.text('Patient Information', 20, y-4);
+            doc.rect(15, y, 180, 7, 'F');
+            doc.text('Patient Information', 20, y+5);
 
-            // Patient details
+            // Patient Details
             doc.setFont(undefined, 'normal');
-            doc.text(`Patient Name: ${document.getElementById('patientName').value}`, 20, y+5);
-            doc.text(`Age: ${document.getElementById('age').value}`, 120, y+5);
-            doc.text(`Mobile: ${document.getElementById('mobileNumber').value}`, 20, y+15);
-            doc.text(`Doctor: ${document.getElementById('doctorName').value}`, 120, y+15);
-            doc.text(`Bill Status: ${document.getElementById('billStatus').value}`, 20, y+25);
+            const col1 = 20;
+            const col2 = 105;
+            
+            y += 15;
+            doc.text(`Patient Name: ${document.getElementById('patientName').value}`, col1, y);
+            doc.text(`Age: ${document.getElementById('age').value}`, col2, y);
+            
+            y += 8;
+            doc.text(`Mobile: ${document.getElementById('mobileNumber').value}`, col1, y);
+            doc.text(`Doctor: Dr. Radhika (BPT,MPT)`, col2, y);
+            
+            y += 8;
+            doc.text(`Registration No: 05235`, col1, y);
+            doc.text(`Bill Status: Paid`, col2, y);
 
-            // Bill Information Section
-            y += 50;
-            doc.rect(15, y-10, 180, 45);
+            // Description Section
+            y += 20;
+            doc.rect(15, y, 180, 35);
             doc.setFillColor(240, 240, 240);
-            doc.rect(15, y-10, 180, 8, 'F');
+            doc.rect(15, y, 180, 7, 'F');
             doc.setFont(undefined, 'bold');
-            doc.text('Bill Details', 20, y-4);
+            doc.text('Treatment Details', 20, y+5);
 
-            // Bill details
             doc.setFont(undefined, 'normal');
-            doc.text(`Bill Number: ${document.getElementById('billNumber').value}`, 20, y+5);
-            doc.text(`Bill Date: ${formatDate(document.getElementById('billDate').value)}`, 120, y+5);
-            
-            // Issue description with text wrapping
             const description = doc.splitTextToSize(`Issue Description: ${document.getElementById('description').value}`, 170);
             description.forEach((line, index) => {
-                doc.text(line, 20, y+15 + (index * 7));
+                doc.text(line, 20, y+15 + (index * 5));
             });
 
             // Service Details Section
-            y += 50;
-            doc.rect(15, y-10, 180, 45);
+            y += 45;
+            doc.rect(15, y, 180, 45);
             doc.setFillColor(240, 240, 240);
-            doc.rect(15, y-10, 180, 8, 'F');
+            doc.rect(15, y, 180, 7, 'F');
             doc.setFont(undefined, 'bold');
-            doc.text('Service Details', 20, y-4);
+            doc.text('Service Details', 20, y+5);
 
-            // Service details table
+            // Table Headers
+            y += 12;
+            const headers = ['Description', 'Sessions', 'Price/Session', 'Amount'];
+            const columnWidths = [75, 30, 35, 35];
+            let currentX = 20;
+
+            headers.forEach((header, index) => {
+                doc.text(header, currentX, y);
+                currentX += columnWidths[index];
+            });
+
+            // Table Data
+            y += 8;
             doc.setFont(undefined, 'normal');
-            const startY = y + 5;
-            
-            // Table headers
-            doc.line(15, startY, 195, startY); // Top line
-            doc.line(15, startY + 10, 195, startY + 10); // Header separator
-            
-            // Vertical lines
-            doc.line(15, startY, 15, startY + 30); // Left border
-            doc.line(85, startY, 85, startY + 30); // After Description
-            doc.line(120, startY, 120, startY + 30); // After Sessions
-            doc.line(155, startY, 155, startY + 30); // After Price
-            doc.line(195, startY, 195, startY + 30); // Right border
+            currentX = 20;
+            doc.text('Physiotherapy', currentX, y);
+            doc.text(document.getElementById('sessions').value, currentX + 75, y);
+            doc.text(formatNumber(document.getElementById('price').value), currentX + 105, y);
+            doc.text(formatNumber(document.getElementById('totalAmount').value), currentX + 140, y);
 
-            // Headers
-            doc.text('Description', 20, startY + 7);
-            doc.text('Sessions', 90, startY + 7);
-            doc.text('Price/Session', 125, startY + 7);
-            doc.text('Amount', 160, startY + 7);
-
-            // Data
-            doc.text('Physiotherapy', 20, startY + 20);
-            doc.text(document.getElementById('sessions').value, 90, startY + 20);
-            doc.text(formatNumber(document.getElementById('price').value), 125, startY + 20);
-            doc.text(formatNumber(document.getElementById('totalAmount').value), 160, startY + 20);
-
-            // Bottom line
-            doc.line(15, startY + 30, 195, startY + 30);
-
-            // Total amount
+            // Total
+            y += 15;
             doc.setFont(undefined, 'bold');
-            doc.text('Total Amount:', 125, startY + 40);
-            doc.text(formatNumber(document.getElementById('totalAmount').value), 160, startY + 40);
+            doc.text('Total Amount:', 120, y);
+            doc.text(formatNumber(document.getElementById('totalAmount').value), 160, y);
+
+            // Signature Section
+            y += 25;
+            doc.setFont(undefined, 'normal');
+            
+            // Checked by
+            doc.text('Checked by:', 30, y);
+            doc.line(30, y+5, 80, y+5);
+            
+            // Received by
+            doc.text('Received by:', 120, y);
+            doc.line(120, y+5, 170, y+5);
 
             // Footer
-            doc.setFont(undefined, 'normal');
             doc.setFontSize(10);
             doc.text('Thank you for choosing Dr.RADHIKA PHYSIO CARE', 105, 270, { align: 'center' });
             doc.text('This is a computer generated receipt', 105, 275, { align: 'center' });
